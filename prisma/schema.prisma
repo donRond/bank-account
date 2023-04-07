@@ -12,26 +12,32 @@ datasource db {
 
 model User {
   id        String   @id @default(uuid())
-  username  String
+  username  String   @unique
   password  String
-  account   Accounts @relation(fields: [accountId], references: [id])
-  accountId String   @unique
+  account   Account? @relation(fields: [accountId], references: [id])
+  accountId String?  @unique
+
+  @@map("users")
 }
 
-model Accounts {
-  id                   String         @id @default(uuid())
+model Account {
+  id                   String        @id @default(uuid())
   balance              Float
   User                 User[]
-  debitedTransactions  Transactions[] @relation("DebitedTransactions")
-  creditedTransactions Transactions[] @relation("CreditedTransactions")
+  debitedTransactions  Transaction[] @relation("DebitedTransactions")
+  creditedTransactions Transaction[] @relation("CreditedTransactions")
+
+  @@map("accounts")
 }
 
-model Transactions {
+model Transaction {
   id                String   @id @default(uuid())
-  debitedAccount    Accounts @relation("DebitedTransactions", fields: [debitedAccountId], references: [id])
+  debitedAccount    Account  @relation("DebitedTransactions", fields: [debitedAccountId], references: [id])
   debitedAccountId  String
-  creditedAccount   Accounts @relation("CreditedTransactions", fields: [creditedAccountId], references: [id])
+  creditedAccount   Account  @relation("CreditedTransactions", fields: [creditedAccountId], references: [id])
   creditedAccountId String
   value             Float
   createdAt         DateTime @default(now())
+
+  @@map("transactions")
 }
