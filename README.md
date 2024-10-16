@@ -13,6 +13,8 @@ Este projeto foi desenvolvido utilizando o seguinte stack:
 - **Node.js**
 - **NestJS**
 - **TypeScript**
+- **Prisma**
+- **Postgres**
 
 Essas tecnologias fornecem escalabilidade, segurança de tipos e boas práticas modernas para construir aplicações de fácil manutenção.
 
@@ -105,6 +107,9 @@ _Figura: Relações entre as tabelas User, Account e Transaction._
 
 3. **Configuração do Ambiente**:
    Crie um arquivo `.env` na raiz do projeto e defina as variáveis de ambiente necessárias, como conexão com o banco de dados e segredo do JWT.
+   ```
+   Obs: O `.env.example` tem todas as infos que devem ser utilizada para criar o .env
+   ```
 4. **Executar a Aplicação**:
    Para rodar o projeto, é necessário ter o Docker e o Docker Compose instalados na máquina. Em seguida, execute o comando:
 
