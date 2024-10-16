@@ -112,7 +112,16 @@ _Figura: Relações entre as tabelas User, Account e Transaction._
    docker compose up
    ```
 
+5. **Verificar as Métricas**
+   Acesse http://localhost:9090 para abrir a interface do Prometheus. Você poderá consultar as métricas coletadas em http://localhost:3000/metrics.
    Após a aplicação estar rodando, você pode acessar a documentação da API pelo Swagger em `http://localhost:3000`.
+
+6. **Usuario Admin api**
+
+```
+email: "admin@admin.com",
+password: "Admin123!"
+```
 
 ---
 

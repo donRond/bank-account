@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
 import { UserController } from './user/controller/user.controller';
 import { UserService } from './user/service/user.service';
@@ -11,6 +11,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TransactionService } from './transaction/service/transaction.service';
 import { TransactionRepository } from './transaction/repository/transaction.repository';
+import { PrometheusMiddleware } from './middleware/prometheus.middleware';
+import { MetricsController } from './metric/metrics.controller';
 
 @Module({
   imports: [
@@ -28,7 +30,7 @@ import { TransactionRepository } from './transaction/repository/transaction.repo
       }),
     }),
   ],
-  controllers: [UserController, SessionController],
+  controllers: [UserController, SessionController, MetricsController],
   providers: [
     PrismaService,
     UserService,
@@ -40,4 +42,8 @@ import { TransactionRepository } from './transaction/repository/transaction.repo
     TransactionRepository,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(PrometheusMiddleware).forRoutes('*'); // Aplicar o middleware a todas as rotas
+  }
+}

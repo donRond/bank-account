@@ -7,14 +7,14 @@ import * as path from 'path';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-    // Definindo o caminho do arquivo swagger.json
-    const swaggerFilePath = path.join(__dirname, '..', 'docs', 'swagger.json');
-  
-    // Lendo o arquivo swagger.json
-    const swaggerDocument = JSON.parse(fs.readFileSync(swaggerFilePath, 'utf8'));
-  
-    // Configurando o Swagger UI
-    app.use('', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  // Definindo o caminho do arquivo swagger.json
+  const swaggerFilePath = path.join(__dirname, '..', 'docs', 'swagger.json');
+
+  // Lendo o arquivo swagger.json
+  const swaggerDocument = JSON.parse(fs.readFileSync(swaggerFilePath, 'utf8'));
+
+  // Configurando o Swagger UI
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
   await app.listen(3000);
 }

@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 15s # Tempo para coletar métricas
+  evaluation_interval: 15s # Tempo para avaliar regras
+
+scrape_configs:
+  - job_name: 'nestjs_app'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['app:3000'] # Nome do serviço definido no docker-compose
