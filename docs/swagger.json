@@ -1,0 +1,528 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API de Transações",
+    "version": "1.0.0",
+    "description": "API para gerenciamento de login, registro, transferência e consulta de saldo."
+  },
+  "paths": {
+    "/login": {
+      "post": {
+        "summary": "Login do Usuário",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "test@gmail.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "1234Umdois!"
+                  }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token de Acesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/register": {
+      "post": {
+        "summary": "Registro de Usuário",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "testando@gmail.com"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "testando"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "1234Umdois!"
+                  }
+                },
+                "required": ["email", "name", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário Criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "example": "9b047a1e-a2b4-4ebb-883b-54ad2f36b88e"
+                    },
+                    "email": {
+                      "type": "string",
+                      "example": "testando@gmail.com"
+                    },
+                    "name": {
+                      "type": "string",
+                      "example": "testando"
+                    },
+                    "role": {
+                      "type": "string",
+                      "example": "USER"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-10-16T19:20:31.436Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/balance": {
+      "get": {
+        "summary": "Consulta de Saldo do Usuário",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Saldo do Usuário",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "balance": {
+                      "type": "string",
+                      "example": "1000"
+                    },
+                    "id": {
+                      "type": "string",
+                      "example": "fbae4ecc-9bb2-4374-8044-76a542786a08"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/transfer/initiate": {
+      "post": {
+        "summary": "Iniciar Transferência",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "test2@gmail.com"
+                  },
+                  "amount": {
+                    "type": "number",
+                    "example": 100
+                  }
+                },
+                "required": ["email", "amount"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transferência Iniciada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "example": "08cf47d9-d06e-4542-b103-b15a9cec0cf4"
+                    },
+                    "debitedAccountId": {
+                      "type": "string",
+                      "example": "07c29c2c-d568-4155-b548-e990d66cad3b"
+                    },
+                    "creditedAccountId": {
+                      "type": "string",
+                      "example": "1f551a2a-e062-4a91-9627-a152c2370322"
+                    },
+                    "value": {
+                      "type": "string",
+                      "example": "100"
+                    },
+                    "transactionType": {
+                      "type": "string",
+                      "example": "transfer"
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "pendente"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-10-16T15:59:19.527Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/transfer/confirm": {
+      "post": {
+        "summary": "Confirmar Transferência",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "08cf47d9-d06e-4542-b103-b15a9cec0cf4"
+                  }
+                },
+                "required": ["id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transferência Confirmada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "example": "cc3bbc81-ca86-4074-a0cb-a92d79815c61"
+                    },
+                    "debitedAccountId": {
+                      "type": "string",
+                      "example": "fbae4ecc-9bb2-4374-8044-76a542786a08"
+                    },
+                    "creditedAccountId": {
+                      "type": "string",
+                      "example": "ce256ea9-4664-43ac-88cc-d4ecedc1ea2b"
+                    },
+                    "value": {
+                      "type": "string",
+                      "example": "1"
+                    },
+                    "transactionType": {
+                      "type": "string",
+                      "example": "transfer"
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "completa"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-10-16T19:35:32.139Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/transfer/reversal": {
+      "post": {
+        "summary": "Reverter Transferência",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "08cf47d9-d06e-4542-b103-b15a9cec0cf4"
+                  }
+                },
+                "required": ["id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transferência Revertida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "example": "98cdee4d-0b41-4e3e-b427-3da6f5fdbd8e"
+                    },
+                    "debitedAccountId": {
+                      "type": "string",
+                      "example": "fbae4ecc-9bb2-4374-8044-76a542786a08"
+                    },
+                    "creditedAccountId": {
+                      "type": "string",
+                      "example": "ce256ea9-4664-43ac-88cc-d4ecedc1ea2b"
+                    },
+                    "value": {
+                      "type": "string",
+                      "example": "100"
+                    },
+                    "transactionType": {
+                      "type": "string",
+                      "example": "transfer"
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "revertida"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-10-16T19:35:32.139Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/transfer/cancel": {
+      "post": {
+        "summary": "Cancelar transferência",
+        "description": "Cancela uma transferência específica com base no ID fornecido.",
+        "operationId": "cancelTransfer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "08cf47d9-d06e-4542-b103-b15a9cec0cf4"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transferência cancelada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "example": "cc3bbc81-ca86-4074-a0cb-a92d79815c61"
+                    },
+                    "debitedAccountId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "example": "fbae4ecc-9bb2-4374-8044-76a542786a08"
+                    },
+                    "creditedAccountId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "example": "ce256ea9-4664-43ac-88cc-d4ecedc1ea2b"
+                    },
+                    "reversedTransactionId": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": null
+                    },
+                    "value": {
+                      "type": "string",
+                      "example": "1"
+                    },
+                    "transactionType": {
+                      "type": "string",
+                      "example": "transfer"
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "cancelada"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-10-16T19:35:32.139Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Transferência não encontrada."
+          },
+          "400": {
+            "description": "Solicitação inválida."
+          }
+        }
+      }
+    },
+    "/user/list-transaction": {
+      "get": {
+        "summary": "Listar transações",
+        "description": "Retorna uma lista de transações do usuário.",
+        "operationId": "listTransactions",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de transações retornada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "cc3bbc81-ca86-4074-a0cb-a92d79815c61"
+                      },
+                      "debitedAccountId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "fbae4ecc-9bb2-4374-8044-76a542786a08"
+                      },
+                      "creditedAccountId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "ce256ea9-4664-43ac-88cc-d4ecedc1ea2b"
+                      },
+                      "reversedTransactionId": {
+                        "type": "string",
+                        "nullable": true,
+                        "example": null
+                      },
+                      "value": {
+                        "type": "string",
+                        "example": "1"
+                      },
+                      "transactionType": {
+                        "type": "string",
+                        "example": "transfer"
+                      },
+                      "status": {
+                        "type": "string",
+                        "example": "completa"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-10-16T19:35:32.139Z"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado, token inválido ou ausente."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

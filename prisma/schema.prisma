@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(USER)
+  account   Account? @relation(fields: [accountId], references: [id])
+  accountId String?  @unique @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Account {
+  id            String   @id @default(uuid()) @db.Uuid
+  balance       Decimal? @db.Decimal(10, 2)
+  lockedBalance Decimal? @db.Decimal(10, 2)
+  createdAt     DateTime @default(now()) @db.Timestamp(6)
+  user          User?
+
+  // Nomeando as relações
+  debitedTransactions  Transaction[] @relation("DebitedTransactions")
+  creditedTransactions Transaction[] @relation("CreditedTransactions")
+}
+
+model Transaction {
+  id                    String       @id @default(uuid()) @db.Uuid
+  debitedAccount        Account      @relation("DebitedTransactions", fields: [debitedAccountId], references: [id])
+  debitedAccountId      String       @db.Uuid
+  creditedAccount       Account      @relation("CreditedTransactions", fields: [creditedAccountId], references: [id])
+  creditedAccountId     String       @db.Uuid
+  reversedTransaction   Transaction? @relation("ReversedTransaction", fields: [reversedTransactionId], references: [id])
+  reversedTransactionId String?      @unique @db.Uuid
+  value                 Decimal      @db.Decimal(10, 2) // Exemplo de precisão
+  transactionType       String
+  status                String
+  createdAt             DateTime     @default(now()) @db.Timestamp(6)
+
+  // Adicionando a relação oposta para reversedTransaction
+  reverseTransaction Transaction? @relation("ReversedTransaction") // Relação oposta
+
+  @@index([reversedTransactionId])
+}
