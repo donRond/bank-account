@@ -33,7 +33,7 @@ A aplicação consiste nos seguintes componentes principais:
 O diagrama abaixo representa a modelagem do banco de dados usada na aplicação:
 
 ![1729105542212](image/README/1729105542212.png)
-*Figura: Relações entre as tabelas User, Account e Transaction.*
+_Figura: Relações entre as tabelas User, Account e Transaction._
 
 - **Tabela User**:
 
@@ -44,12 +44,14 @@ O diagrama abaixo representa a modelagem do banco de dados usada na aplicação:
   - `role`: Função do usuário (usuário padrão)
   - `accountId`: Chave estrangeira para a tabela Account
   - `createdAt`: Data de criação do usuário
+
 - **Tabela Account**:
 
   - `id`: Chave Primária (UUID)
   - `balance`: Saldo disponível do usuário
   - `lockedBalance`: Saldo reservado (ex.: para transações pendentes)
   - `createdAt`: Data de criação da conta
+
 - **Tabela Transaction**:
 
   - `id`: Chave Primária (UUID)
@@ -68,14 +70,17 @@ O diagrama abaixo representa a modelagem do banco de dados usada na aplicação:
 1. **Cadastro de Usuário**:
 
    - Os usuários podem criar uma conta fornecendo nome, email e senha.
+
 2. **Autenticação**:
 
    - O sistema inclui autenticação, garantindo acesso seguro através de autenticação baseada em token.
+
 3. **Transferência de Saldo**:
 
    - Os usuários podem enviar e receber dinheiro entre si.
    - Antes de processar uma transferência, o sistema valida se o remetente tem saldo suficiente.
    - As transações são registradas com segurança na tabela `Transaction`.
+
 4. **Reversão de Transação**:
 
    - Transações podem ser revertidas em caso de inconsistências ou por solicitação do usuário.
@@ -89,20 +94,25 @@ O diagrama abaixo representa a modelagem do banco de dados usada na aplicação:
 
    ```bash
    git clone <url-do-repositorio>
-   cd financial-wallet
+   cd bank-account
    ```
+
 2. **Instalar dependências**:
 
    ```bash
    npm install
    ```
+
 3. **Configuração do Ambiente**:
    Crie um arquivo `.env` na raiz do projeto e defina as variáveis de ambiente necessárias, como conexão com o banco de dados e segredo do JWT.
 4. **Executar a Aplicação**:
+   Para rodar o projeto, é necessário ter o Docker e o Docker Compose instalados na máquina. Em seguida, execute o comando:
 
    ```bash
-   npm run start:dev
+   docker compose up
    ```
+
+   Após a aplicação estar rodando, você pode acessar a documentação da API pelo Swagger em `http://localhost:3000`.
 
 ---
 
@@ -118,20 +128,3 @@ Execute os testes com:
 ```bash
 npm run test
 ```
-
----
-
-## Critérios de Avaliação
-
-O projeto será avaliado com base nos seguintes aspectos:
-
-- **Segurança**: Garantir o tratamento seguro de dados de usuários e transações financeiras.
-- **Padrões de Projeto & Princípios**: Uso de design patterns e princípios SOLID para manter o código escalável e de fácil manutenção.
-- **Modelagem de Dados**: Design relacional bem pensado entre usuários, contas e transações.
-
-### Pontos Extras:
-
-- **Docker**: Containerização da aplicação para facilitar o deployment.
-- **Testes de Integração e Unitários**: Garantir a funcionalidade e estabilidade da aplicação.
-- **Documentação**: Documentação clara e concisa.
-- **Monitoramento e Logging**: Implementação de logs e monitoramento adequados para acompanhar o comportamento do sistema e possíveis erros.

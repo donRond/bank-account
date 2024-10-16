@@ -7,6 +7,7 @@ import {
   Request,
   Post,
   Body,
+  Logger,
 } from '@nestjs/common';
 import { UserService } from '../service/user.service';
 import { AuthGuard } from '../../auth/guards/auth.guard';
@@ -23,6 +24,7 @@ import { RoleGuard } from '../../auth/guards/role.guard';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+  private readonly logger = new Logger(UserController.name);
 
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
@@ -32,11 +34,15 @@ export class UserController {
     @Body() payload: IinitiationTransactionViewDto,
   ): Promise<TransactionResponseDto> {
     const { id } = req['user'];
-    return await this.userService.initiateTransfer({
+    this.logger.log(`Initiating transfer from user ${id} to ${payload.email} for amount ${payload.amount}`);
+
+    const response = await this.userService.initiateTransfer({
       sender: id,
       receiver: payload.email,
       amount: payload.amount,
     });
+    this.logger.log(`Transfer initiated: ${JSON.stringify(response)}`);
+    return response;
   }
 
   @HttpCode(HttpStatus.OK)
@@ -47,7 +53,10 @@ export class UserController {
     @Body() payload: ConfirmTransactionDto,
   ): Promise<TransactionResponseDto> {
     const { id } = req['user'];
-    return await this.userService.confirmTransfer(payload, id);
+    this.logger.log(`Confirming transfer for user ${id} with payload: ${JSON.stringify(payload)}`);
+    const response = await this.userService.confirmTransfer(payload, id);
+    this.logger.log(`Transfer confirmed: ${JSON.stringify(response)}`);
+    return response;
   }
 
   @HttpCode(HttpStatus.OK)
@@ -57,7 +66,10 @@ export class UserController {
   async reverselTransfer(
     @Body() payload: ReversalTransactionDto,
   ): Promise<TransactionResponseDto> {
-    return await this.userService.reversalTransfer(payload);
+    this.logger.log(`Reversing transfer with payload: ${JSON.stringify(payload)}`);
+     const response = await this.userService.reversalTransfer(payload);
+     this.logger.log(`Transfer reversed: ${JSON.stringify(response)}`);
+     return response;
   }
 
   @HttpCode(HttpStatus.OK)
@@ -68,7 +80,10 @@ export class UserController {
     @Body() payload: ReversalTransactionDto,
   ): Promise<TransactionResponseDto> {
     const { id } = req['user'];
-    return await this.userService.cancelTransfer(payload, id);
+    this.logger.log(`Cancelling transfer for user ${id} with payload: ${JSON.stringify(payload)}`);
+     const response=await this.userService.cancelTransfer(payload, id);
+     this.logger.log(`Transfer cancelled: ${JSON.stringify(response)}`);
+     return response;
   }
 
   @HttpCode(HttpStatus.OK)
@@ -78,7 +93,10 @@ export class UserController {
     @Request() req: ExpressRequest,
   ): Promise<TransactionResponseDto[]> {
     const { id } = req['user'];
-    return await this.userService.listTransaction(id);
+    this.logger.log(`Listing transactions for user ${id}`);
+    const response = await this.userService.listTransaction(id);
+    this.logger.log(`Transactions listed: ${JSON.stringify(response)}`);
+    return response;
   }
 
   @HttpCode(HttpStatus.OK)
@@ -86,6 +104,9 @@ export class UserController {
   @Get('balance')
   async showBalance(@Request() req: ExpressRequest): Promise<IAccountViewDto> {
     const { id } = req['user'];
-    return await this.userService.showBalance(id);
+    this.logger.log(`Fetching balance for user ${id}`);
+    const response = await this.userService.showBalance(id);
+    this.logger.log(`Balance fetched: ${JSON.stringify(response)}`);
+    return response;
   }
 }

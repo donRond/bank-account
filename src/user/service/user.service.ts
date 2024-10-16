@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { IcreateUserViewDto } from '../dto/IcreateUser.dto';
 import { UserRepository } from '../repository/user.repository';
 import * as bcrypt from 'bcrypt';
@@ -24,14 +24,19 @@ export class UserService {
     private readonly transactionService: TransactionService,
   ) {}
 
-  async create(payload: IcreateUserViewDto): Promise<any> {
-    const emailExisted = await this.userRespository.findByEmail(payload.email);
+  private readonly logger = new Logger(UserService.name);
 
+  async create(payload: IcreateUserViewDto): Promise<any> {
+    this.logger.log('Creating a new user...');
+    
+    const emailExisted = await this.userRespository.findByEmail(payload.email);
     if (emailExisted) {
-      throw new BadRequestException('Email alright register.');
+      this.logger.error('Email already registered: ' + payload.email);
+      throw new BadRequestException('Email already registered.');
     }
 
     if (!this.validationPassword(payload.password)) {
+      this.logger.error('Password validation failed for email: ' + payload.email);
       throw new BadRequestException(
         'Password must be at least 8 characters long and contain uppercase letters and numbers.',
       );
@@ -47,9 +52,11 @@ export class UserService {
 
     const userSuccess = await this.userRespository.create(data);
     if (!userSuccess.email) {
-      throw new BadRequestException('Failed create account');
+      this.logger.error('Failed to create user account: ' + JSON.stringify(userSuccess));
+      throw new BadRequestException('Failed to create account');
     }
 
+    this.logger.log('User created successfully: ' + userSuccess.email);
     const account = await this.accountService.create({
       balance: new Decimal(1000),
     });
@@ -61,6 +68,7 @@ export class UserService {
 
     await this.userRespository.update(user);
 
+    this.logger.log('User account linked with ID: ' + account.id);
     return user;
   }
 
@@ -69,22 +77,21 @@ export class UserService {
     receiver,
     amount,
   }): Promise<TransactionResponseDto> {
+    this.logger.log(`Initiating transfer from ${sender} to ${receiver} for amount ${amount}...`);
+    
     const creditedUser = await this.userRespository.findByEmail(receiver);
-
     if (sender === creditedUser.id) {
+      this.logger.error('User cannot transfer to themselves: ' + sender);
       throw new BadRequestException('You can`t transfer to yourself');
     }
 
     const debitedAccount = await this.userRespository.showBalance(sender);
-
     if (debitedAccount.balance < amount) {
+      this.logger.error(`Insufficient funds for user ${sender}: current balance ${debitedAccount.balance}, attempted transfer ${amount}`);
       throw new BadRequestException('Insufficient funds');
     }
 
-    const creditedAccount = await this.userRespository.showBalance(
-      creditedUser.id,
-    );
-
+    const creditedAccount = await this.userRespository.showBalance(creditedUser.id);
     await this.lockedBalance(amount, debitedAccount.id);
 
     const transaction = await this.transactionService.initiateTransfer({
@@ -95,6 +102,7 @@ export class UserService {
       transactionType: TransactionType.TRANSFER,
     });
 
+    this.logger.log('Transfer initiated successfully: ' + JSON.stringify(transaction));
     return transaction;
   }
 
@@ -102,35 +110,32 @@ export class UserService {
     payload: ConfirmTransactionDto,
     id: string,
   ): Promise<TransactionResponseDto> {
-    const pendingTransaction =
-      await this.transactionService.findTransaction(payload);
+    this.logger.log('Confirming transfer for transaction: ' + JSON.stringify(payload));
 
+    const pendingTransaction = await this.transactionService.findTransaction(payload);
     if (!pendingTransaction) {
-      throw new BadRequestException('Transaction not fund');
+      this.logger.error('Transaction not found: ' + JSON.stringify(payload));
+      throw new BadRequestException('Transaction not found');
     }
 
     if (pendingTransaction.status === TransactionStatus.COMPLETE) {
-      throw new BadRequestException('Transaction was confirm');
+      this.logger.error('Transaction already confirmed: ' + pendingTransaction.id);
+      throw new BadRequestException('Transaction was confirmed');
     }
 
     const debitedAccount = await this.userRespository.showBalance(id);
-
     if (pendingTransaction.debitedAccountId !== debitedAccount.id) {
+      this.logger.error('User cannot confirm this transaction: ' + id);
       throw new BadRequestException('You can`t confirm this transaction');
     }
 
-    await this.unlockedBalance(
-      pendingTransaction.value,
-      pendingTransaction.debitedAccountId,
-    );
-
+    await this.unlockedBalance(pendingTransaction.value, pendingTransaction.debitedAccountId);
     await this.accountService.updateAccountBalance(
       {
         balance: new Decimal(-pendingTransaction.value),
       },
       pendingTransaction.debitedAccountId,
     );
-
     await this.accountService.updateAccountBalance(
       {
         balance: pendingTransaction.value,
@@ -138,29 +143,30 @@ export class UserService {
       pendingTransaction.creditedAccountId,
     );
 
-    return await this.transactionService.updateTransfer(
+    const updatedTransaction = await this.transactionService.updateTransfer(
       TransactionStatus.COMPLETE,
       pendingTransaction.id,
     );
+    
+    this.logger.log('Transfer confirmed successfully: ' + JSON.stringify(updatedTransaction));
+    return updatedTransaction;
   }
 
   async reversalTransfer(
     payload: ReversalTransactionDto,
   ): Promise<TransactionResponseDto> {
-    const existingTransaction =
-      await this.transactionService.findTransactionReversal(payload);
+    this.logger.log('Initiating reversal for transaction: ' + JSON.stringify(payload));
 
+    const existingTransaction = await this.transactionService.findTransactionReversal(payload);
     if (existingTransaction) {
+      this.logger.error('Reversal transaction already exists: ' + existingTransaction.id);
       throw new BadRequestException('reversedTransactionId already exists');
     }
 
-    const transactionCompleted =
-      await this.transactionService.findTransaction(payload);
-
+    const transactionCompleted = await this.transactionService.findTransaction(payload);
     if (transactionCompleted.status !== TransactionStatus.COMPLETE) {
-      throw new BadRequestException(
-        'Not possible to reversal this transaction',
-      );
+      this.logger.error('Not possible to reverse this transaction: ' + transactionCompleted.id);
+      throw new BadRequestException('Not possible to reverse this transaction');
     }
 
     await this.accountService.updateAccountBalance(
@@ -182,6 +188,7 @@ export class UserService {
       transactionType: TransactionType.REVERSAL,
     });
 
+    this.logger.log('Reversal completed successfully: ' + JSON.stringify(transaction));
     return transaction;
   }
 
@@ -189,35 +196,37 @@ export class UserService {
     payload: ConfirmTransactionDto,
     id: string,
   ): Promise<TransactionResponseDto> {
-    const pendingTransaction =
-      await this.transactionService.findTransaction(payload);
+    this.logger.log('Cancelling transfer for transaction: ' + JSON.stringify(payload));
 
+    const pendingTransaction = await this.transactionService.findTransaction(payload);
     if (!pendingTransaction) {
+      this.logger.error('Transaction not found for cancellation: ' + JSON.stringify(payload));
       throw new BadRequestException('Transaction not found');
     }
 
     if (pendingTransaction.status !== TransactionStatus.PENDING) {
-      throw new BadRequestException('Transaction can`t cancel');
+      this.logger.error('Transaction cannot be canceled: ' + pendingTransaction.id);
+      throw new BadRequestException('Transaction can`t be canceled');
     }
 
     const debitedAccount = await this.userRespository.showBalance(id);
-
     if (pendingTransaction.debitedAccountId !== debitedAccount.id) {
+      this.logger.error('User cannot cancel this transaction: ' + id);
       throw new BadRequestException('You can`t cancel this transaction');
     }
 
-    await this.unlockedBalance(
-      pendingTransaction.value,
-      pendingTransaction.debitedAccountId,
-    );
-
-    return await this.transactionService.updateTransfer(
+    await this.unlockedBalance(pendingTransaction.value, pendingTransaction.debitedAccountId);
+    const updatedTransaction = await this.transactionService.updateTransfer(
       TransactionStatus.CANCELED,
       pendingTransaction.id,
     );
+
+    this.logger.log('Transfer canceled successfully: ' + JSON.stringify(updatedTransaction));
+    return updatedTransaction;
   }
 
   async listTransaction(id: string): Promise<TransactionResponseDto[]> {
+    this.logger.log('Listing transactions for user ID: ' + id);
     return await this.userRespository.listTransaction(id);
   }
 
@@ -225,6 +234,7 @@ export class UserService {
     unlockedBalance: Decimal,
     id: string,
   ): Promise<void> {
+    this.logger.log('Unlocking balance for account ID: ' + id);
     await this.accountService.updateLockedBalance(
       { lockedBalance: new Decimal(-unlockedBalance) },
       id,
@@ -235,6 +245,7 @@ export class UserService {
     lockedBalance: number,
     id: string,
   ): Promise<void> {
+    this.logger.log('Locking balance for account ID: ' + id);
     await this.accountService.updateLockedBalance(
       { lockedBalance: new Decimal(lockedBalance) },
       id,
@@ -242,15 +253,21 @@ export class UserService {
   }
 
   async findByEmail(email: string): Promise<UserDto> {
+    this.logger.log('Finding user by email: ' + email);
     return await this.userRespository.findByEmail(email);
   }
 
   async showBalance(id: string): Promise<IAccountViewDto> {
+    this.logger.log('Showing balance for account ID: ' + id);
     return await this.userRespository.showBalance(id);
   }
 
-  private validationPassword(password: string) {
-    const regex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
-    return regex.test(password);
+  private validationPassword(password: string): boolean {
+    this.logger.log('Validating password...');
+    return (
+      password.length >= 8 &&
+      /[A-Z]/.test(password) &&
+      /\d/.test(password)
+    );
   }
 }
