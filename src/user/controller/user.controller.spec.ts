@@ -15,7 +15,7 @@ const mockUserService = {
   confirmTransfer: jest.fn(),
   reversalTransfer: jest.fn(),
   cancelTransfer: jest.fn(),
-  listTransaction: jest.fn(),
+  listTransactions: jest.fn(),
   showBalance: jest.fn(),
 };
 
@@ -122,12 +122,12 @@ describe('UserController', () => {
   describe('listTransaction', () => {
     it('deve listar as transações', async () => {
       const request = { user: { id: 'user-id' } } as unknown as Request;
-      mockUserService.listTransaction.mockResolvedValue([mockTransactionResponse]);
+      mockUserService.listTransactions.mockResolvedValue([mockTransactionResponse]);
 
       const result = await userController.listTransaction(request);
 
       expect(result).toEqual([mockTransactionResponse]);
-      expect(mockUserService.listTransaction).toHaveBeenCalledWith('user-id');
+      expect(mockUserService.listTransactions).toHaveBeenCalledWith('user-id');
     });
   });
 

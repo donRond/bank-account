@@ -94,7 +94,7 @@ export class UserController {
   ): Promise<TransactionResponseDto[]> {
     const { id } = req['user'];
     this.logger.log(`Listing transactions for user ${id}`);
-    const response = await this.userService.listTransaction(id);
+    const response = await this.userService.listTransactions(id);
     this.logger.log(`Transactions listed: ${JSON.stringify(response)}`);
     return response;
   }
