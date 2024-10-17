@@ -136,14 +136,14 @@ describe('UserService', () => {
         new BadRequestException('Transaction was already confirmed')
       );
 ;
-      jest.spyOn(userService, 'showBalance').mockResolvedValue({ id: createTransactionDto.debitedAccountId, balance: new Decimal(100) });
+      jest.spyOn(userService, 'showBalance').mockResolvedValue({ id: createTransactionDto.debitedAccountId, balance: new Decimal(100), lockedBalance: new Decimal(10.00)});
     
       await expect(userService.confirmTransfer(completedTransactionDto, 'user-id')).rejects.toThrow(BadRequestException);
     });
 
     it('should confirm the transfer successfully', async () => {
       const pendingTransaction = { id: '1', status: 'PENDING', debitedAccountId: 'user-id', creditedAccountId: 'receiver-id', value: new Decimal(500),transactionType: TransactionType.TRANSFER, createdAt:new Date('2024-10-16T15:58:26.135Z') };
-      const debitedAccount = { id: 'user-id', balance: new Decimal(1000) };
+      const debitedAccount = { id: 'user-id', balance: new Decimal(1000), lockedBalance: new Decimal(10.00) };
 
       jest.spyOn(transactionService, 'findTransaction').mockResolvedValue(pendingTransaction);
       jest.spyOn(userRepository, 'showBalance').mockResolvedValue(debitedAccount);
@@ -202,7 +202,7 @@ describe('UserService', () => {
 
     it('should cancel the transfer successfully', async () => {
       const pendingTransaction = { id: '1', status: TransactionStatus.PENDING, debitedAccountId: 'user-id', creditedAccountId: 'receiver-id', value: new Decimal(500), transactionType: TransactionType.TRANSFER, createdAt:new Date('2024-10-16T15:58:26.135Z') };
-      const debitedAccount = { id: 'user-id', balance: new Decimal(1000) };
+      const debitedAccount = { id: 'user-id', balance: new Decimal(1000) , lockedBalance: new Decimal(10.00) };
 
       jest.spyOn(transactionService, 'findTransaction').mockResolvedValue(pendingTransaction);
       jest.spyOn(accountService, 'updateAccountBalance').mockResolvedValue(undefined);

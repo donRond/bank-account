@@ -8,4 +8,5 @@ export class ICreateAccountDto extends PickType(AccountDto, [
 export class IAccountViewDto extends PickType(AccountDto, [
   'id',
   'balance',
+  'lockedBalance',
 ] as const) {}

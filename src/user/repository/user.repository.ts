@@ -19,7 +19,9 @@ export class UserRepository {
   async showBalance(id: string): Promise<IAccountViewDto> {
     const { account } = await this.prisma.user.findUnique({
       where: { id },
-      select: { account: { select: { balance: true, id: true } } },
+      select: {
+        account: { select: { balance: true, id: true, lockedBalance: true } },
+      },
     });
     return account;
   }

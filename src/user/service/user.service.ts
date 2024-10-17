@@ -32,20 +32,23 @@ export class UserService {
     this.validatePassword(userData.password);
 
     const hashedPassword = await this.hashPassword(userData.password);
-    const createdUser = await this.userRepository.create({ ...userData, password: hashedPassword });
+    const createdUser = await this.userRepository.create({
+      ...userData,
+      password: hashedPassword,
+    });
 
     if (!createdUser.email) {
       throw new BadRequestException('Failed to create user account');
     }
 
     this.logger.log('User created successfully: ' + createdUser.email);
-    
+
     const account = await this.createAccount();
     const updatedUser = await this.linkAccountToUser(createdUser, account.id);
     return updatedUser;
   }
 
- private async validateEmail(email: string): Promise<void> {
+  private async validateEmail(email: string): Promise<void> {
     const emailExists = await this.userRepository.findByEmail(email);
     if (emailExists) {
       this.logger.error('Email already registered: ' + email);
@@ -54,10 +57,13 @@ export class UserService {
   }
 
   private validatePassword(password: string): void {
-    const isValid = password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password);
+    const isValid =
+      password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password);
     if (!isValid) {
       this.logger.error('Password validation failed.');
-      throw new BadRequestException('Password must be at least 8 characters long and contain uppercase letters and numbers.');
+      throw new BadRequestException(
+        'Password must be at least 8 characters long and contain uppercase letters and numbers.',
+      );
     }
   }
 
@@ -70,7 +76,10 @@ export class UserService {
     return this.accountService.create({ balance: new Decimal(1000) });
   }
 
-  private async linkAccountToUser(user: any, accountId: string): Promise<UserDto> {
+  private async linkAccountToUser(
+    user: any,
+    accountId: string,
+  ): Promise<UserDto> {
     const updatedUser = { ...user, accountId };
     await this.userRepository.update(updatedUser);
     this.logger.log('User account linked with ID: ' + accountId);
@@ -81,8 +90,14 @@ export class UserService {
     return await this.userRepository.showBalance(id);
   }
 
-  async initiateTransfer({ sender, receiver, amount }): Promise<TransactionResponseDto> {
-    this.logger.log(`Initiating transfer from ${sender} to ${receiver} for amount ${amount}...`);
+  async initiateTransfer({
+    sender,
+    receiver,
+    amount,
+  }): Promise<TransactionResponseDto> {
+    this.logger.log(
+      `Initiating transfer from ${sender} to ${receiver} for amount ${amount}...`,
+    );
 
     const receiverAccount = await this.userRepository.findByEmail(receiver);
     if (sender === receiverAccount.id) {
@@ -90,7 +105,11 @@ export class UserService {
     }
 
     const senderAccount = await this.showBalance(sender);
-    this.validateSufficientFunds(senderAccount.balance, amount);
+    this.validateSufficientFunds(
+      senderAccount.balance,
+      senderAccount.lockedBalance,
+      amount,
+    );
 
     await this.lockBalance(amount, senderAccount.id);
 
@@ -102,30 +121,49 @@ export class UserService {
       transactionType: TransactionType.TRANSFER,
     });
 
-    this.logger.log('Transfer initiated successfully: ' + JSON.stringify(transaction));
+    this.logger.log(
+      'Transfer initiated successfully: ' + JSON.stringify(transaction),
+    );
     return transaction;
   }
 
-  private validateSufficientFunds(balance: Decimal, amount: Decimal): void {
-    if (balance < amount) {
-      throw new BadRequestException('Insufficient funds');
+  private validateSufficientFunds(
+    balance: Decimal,
+    lockedBalance: Decimal,
+    amount: Decimal,
+  ): void {
+    if (balance.sub(lockedBalance).lt(amount)) {
+      throw new BadRequestException('Insufficient funds to lockedBalance');
     }
   }
 
-  async confirmTransfer(payload: ConfirmTransactionDto, userId: string): Promise<TransactionResponseDto> {
-    this.logger.log('Confirming transfer for transaction: ' + JSON.stringify(payload));
+  async confirmTransfer(
+    payload: ConfirmTransactionDto,
+    userId: string,
+  ): Promise<TransactionResponseDto> {
+    this.logger.log(
+      'Confirming transfer for transaction: ' + JSON.stringify(payload),
+    );
 
     const transaction = await this.transactionService.findTransaction(payload);
     this.validateTransactionForConfirmation(transaction, userId);
 
     await this.updateBalancesForTransfer(transaction);
-    const updatedTransaction = await this.transactionService.updateTransfer(TransactionStatus.COMPLETE, transaction.id);
-    
-    this.logger.log('Transfer confirmed successfully: ' + JSON.stringify(updatedTransaction));
+    const updatedTransaction = await this.transactionService.updateTransfer(
+      TransactionStatus.COMPLETE,
+      transaction.id,
+    );
+
+    this.logger.log(
+      'Transfer confirmed successfully: ' + JSON.stringify(updatedTransaction),
+    );
     return updatedTransaction;
   }
 
-  private async validateTransactionForConfirmation(transaction: TransactionResponseDto, userId: string):Promise<void> {
+  private async validateTransactionForConfirmation(
+    transaction: TransactionResponseDto,
+    userId: string,
+  ): Promise<void> {
     if (!transaction) {
       throw new BadRequestException('Transaction not found');
     }
@@ -134,28 +172,42 @@ export class UserService {
       throw new BadRequestException('Transaction was already confirmed');
     }
 
-    const {id} = await this.showBalance(userId);
+    const { id } = await this.showBalance(userId);
     if (transaction.debitedAccountId !== id) {
-      this.logger.log(`account debite ${transaction.debitedAccountId} e userId ${userId}`)
+      this.logger.log(
+        `account debite ${transaction.debitedAccountId} e userId ${userId}`,
+      );
       throw new BadRequestException('You can’t confirm this transaction');
     }
   }
 
   private async updateBalancesForTransfer(transaction: any): Promise<void> {
     await this.unlockBalance(transaction.value, transaction.debitedAccountId);
-    await this.accountService.updateAccountBalance({ balance: new Decimal(-transaction.value) }, transaction.debitedAccountId);
-    await this.accountService.updateAccountBalance({ balance: transaction.value }, transaction.creditedAccountId);
+    await this.accountService.updateAccountBalance(
+      { balance: new Decimal(-transaction.value) },
+      transaction.debitedAccountId,
+    );
+    await this.accountService.updateAccountBalance(
+      { balance: transaction.value },
+      transaction.creditedAccountId,
+    );
   }
 
-  async reversalTransfer(payload: ReversalTransactionDto): Promise<TransactionResponseDto> {
-    this.logger.log('Initiating reversal for transaction: ' + JSON.stringify(payload));
+  async reversalTransfer(
+    payload: ReversalTransactionDto,
+  ): Promise<TransactionResponseDto> {
+    this.logger.log(
+      'Initiating reversal for transaction: ' + JSON.stringify(payload),
+    );
 
-    const existingTransaction = await this.transactionService.findTransactionReversal(payload);
+    const existingTransaction =
+      await this.transactionService.findTransactionReversal(payload);
     if (existingTransaction) {
       throw new BadRequestException('Reversed transaction ID already exists');
     }
 
-    const completedTransaction = await this.transactionService.findTransaction(payload);
+    const completedTransaction =
+      await this.transactionService.findTransaction(payload);
     if (completedTransaction.status !== TransactionStatus.COMPLETE) {
       throw new BadRequestException('Not possible to reverse this transaction');
     }
@@ -171,29 +223,50 @@ export class UserService {
       transactionType: TransactionType.REVERSAL,
     });
 
-    this.logger.log('Reversal completed successfully: ' + JSON.stringify(reversalTransaction));
+    this.logger.log(
+      'Reversal completed successfully: ' + JSON.stringify(reversalTransaction),
+    );
     return reversalTransaction;
   }
 
   private async updateBalancesForReversal(transaction: any): Promise<void> {
-    await this.accountService.updateAccountBalance({ balance: transaction.value }, transaction.debitedAccountId);
-    await this.accountService.updateAccountBalance({ balance: new Decimal(-transaction.value) }, transaction.creditedAccountId);
+    await this.accountService.updateAccountBalance(
+      { balance: transaction.value },
+      transaction.debitedAccountId,
+    );
+    await this.accountService.updateAccountBalance(
+      { balance: new Decimal(-transaction.value) },
+      transaction.creditedAccountId,
+    );
   }
 
-  async cancelTransfer(payload: ConfirmTransactionDto, userId: string): Promise<TransactionResponseDto> {
-    this.logger.log('Cancelling transfer for transaction: ' + JSON.stringify(payload));
+  async cancelTransfer(
+    payload: ConfirmTransactionDto,
+    userId: string,
+  ): Promise<TransactionResponseDto> {
+    this.logger.log(
+      'Cancelling transfer for transaction: ' + JSON.stringify(payload),
+    );
 
     const transaction = await this.transactionService.findTransaction(payload);
     this.validateTransactionForCancellation(transaction, userId);
 
     await this.unlockBalance(transaction.value, transaction.debitedAccountId);
-    const updatedTransaction = await this.transactionService.updateTransfer(TransactionStatus.CANCELED, transaction.id);
+    const updatedTransaction = await this.transactionService.updateTransfer(
+      TransactionStatus.CANCELED,
+      transaction.id,
+    );
 
-    this.logger.log('Transfer canceled successfully: ' + JSON.stringify(updatedTransaction));
+    this.logger.log(
+      'Transfer canceled successfully: ' + JSON.stringify(updatedTransaction),
+    );
     return updatedTransaction;
   }
 
-   private async validateTransactionForCancellation(transaction: any, userId: string): Promise<void> {
+  private async validateTransactionForCancellation(
+    transaction: any,
+    userId: string,
+  ): Promise<void> {
     if (!transaction) {
       throw new BadRequestException('Transaction not found for cancellation');
     }
@@ -201,7 +274,7 @@ export class UserService {
     if (transaction.status !== TransactionStatus.PENDING) {
       throw new BadRequestException('Transaction can’t be canceled');
     }
-    const {id} = await this.showBalance(userId);
+    const { id } = await this.showBalance(userId);
     if (transaction.debitedAccountId !== id) {
       throw new BadRequestException('You can’t cancel this transaction');
     }
@@ -212,13 +285,26 @@ export class UserService {
     return await this.userRepository.listTransaction(userId);
   }
 
-  private async unlockBalance(unlockedBalance: Decimal, accountId: string): Promise<void> {
+  private async unlockBalance(
+    unlockedBalance: Decimal,
+    accountId: string,
+  ): Promise<void> {
     this.logger.log('Unlocking balance for account ID: ' + accountId);
-    await this.accountService.updateLockedBalance({ lockedBalance: new Decimal(-unlockedBalance) }, accountId);
+    await this.accountService.updateLockedBalance(
+      { lockedBalance: new Decimal(-unlockedBalance) },
+      accountId,
+    );
   }
 
-  private async lockBalance(lockedBalance: number, accountId: string): Promise<void> {
+  private async lockBalance(
+    lockedBalance: number,
+    accountId: string,
+  ): Promise<void> {
     this.logger.log('Locking balance for account ID: ' + accountId);
-    await this.accountService.updateLockedBalance({ lockedBalance: new Decimal(lockedBalance) }, accountId);
+
+    await this.accountService.updateLockedBalance(
+      { lockedBalance: new Decimal(lockedBalance) },
+      accountId,
+    );
   }
 }

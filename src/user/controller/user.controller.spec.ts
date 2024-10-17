@@ -5,7 +5,6 @@ import { AuthGuard } from '../../auth/guards/auth.guard';
 import { RoleGuard } from '../../auth/guards/role.guard';
 import { IinitiationTransactionViewDto, ConfirmTransactionDto, ReversalTransactionDto, TransactionResponseDto } from '../../transaction/dto/transaction.dto';
 import { IAccountViewDto } from '../../account/dto/IcreateAccount.dto';
-import { ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 import { Decimal } from '@prisma/client/runtime/library';
 
@@ -33,6 +32,7 @@ const mockTransactionResponse: TransactionResponseDto = {
 const mockAccountView: IAccountViewDto = {
   id: 'account-id',
   balance: new Decimal(500.00),
+  lockedBalance:new Decimal(100.00),
 };
 
 describe('UserController', () => {
