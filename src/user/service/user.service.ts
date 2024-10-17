@@ -14,6 +14,7 @@ import {
   TransactionResponseDto,
 } from '../../transaction/dto/transaction.dto';
 import { AccountService } from '../../account/service/account.service';
+import { AccountDto } from 'src/account/dto/account.dto';
 
 @Injectable()
 export class UserService {
@@ -72,12 +73,12 @@ export class UserService {
     return await bcrypt.hash(password, salt);
   }
 
-  private async createAccount(): Promise<any> {
+  private async createAccount(): Promise<AccountDto> {
     return this.accountService.create({ balance: new Decimal(1000) });
   }
 
   private async linkAccountToUser(
-    user: any,
+    user: UserDto,
     accountId: string,
   ): Promise<UserDto> {
     const updatedUser = { ...user, accountId };
