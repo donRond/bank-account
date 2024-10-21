@@ -13,8 +13,8 @@ export class TransactionRepository {
   async initiationTransaction(
     data: CreateTransactionDto,
   ): Promise<TransactionResponseDto> {
-    const transaction = this.prisma.$transaction(async (prisma) => {
-      await prisma.transaction.create({ data });
+    const transaction = this.prisma.transaction.create({
+      data,
     });
     return transaction;
   }
