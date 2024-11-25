@@ -10,7 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
-  private readonly logger = new Logger(RoleGuard.name); 
+  private readonly logger = new Logger(RoleGuard.name);
 
   constructor(
     private jwtService: JwtService,
@@ -19,10 +19,10 @@ export class RoleGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request); 
+    const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      this.logger.warn('Authorization token not found'); 
+      this.logger.warn('Authorization token not found');
       return false;
     }
 
@@ -30,17 +30,17 @@ export class RoleGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
-      this.logger.log(`Token verified for user: ${payload.email}`); 
+      this.logger.log(`Token verified for user: ${payload.email}`);
 
       const hasRole = payload?.role === 'ADMIN';
       if (!hasRole) {
-        this.logger.warn(`User ${payload.email} does not have ADMIN role`); 
+        this.logger.warn(`User ${payload.email} does not have ADMIN role`);
       } else {
-        this.logger.log(`User ${payload.email} has ADMIN role`); 
+        this.logger.log(`User ${payload.email} has ADMIN role`);
       }
       return hasRole;
     } catch (error) {
-      this.logger.error('Invalid token', error); 
+      this.logger.error('Invalid token', error);
       throw new UnauthorizedException();
     }
   }
