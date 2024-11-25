@@ -35,11 +35,15 @@ export class SessionController {
   @HttpCode(HttpStatus.CREATED)
   @Post('register')
   async create(@Body() payload: IcreateUserViewDto): Promise<any> {
-    this.logger.log('Registration attempt with data: ' + JSON.stringify(payload));
+    this.logger.log(
+      'Registration attempt with data: ' + JSON.stringify(payload),
+    );
 
     const user = await this.userService.create(payload);
 
-    this.logger.log('Registration successful for user: ' + JSON.stringify(user));
+    this.logger.log(
+      'Registration successful for user: ' + JSON.stringify(user),
+    );
     return user;
   }
 }
