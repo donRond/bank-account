@@ -11,6 +11,7 @@ import { TransactionType } from '../../transaction/enum/transactionType.enum';
 import {
   ConfirmTransactionDto,
   ReversalTransactionDto,
+  TransactionDto,
   TransactionResponseDto,
 } from '../../transaction/dto/transaction.dto';
 import { AccountService } from '../../account/service/account.service';
@@ -182,7 +183,9 @@ export class UserService {
     }
   }
 
-  private async updateBalancesForTransfer(transaction: any): Promise<void> {
+  private async updateBalancesForTransfer(
+    transaction: TransactionDto,
+  ): Promise<void> {
     await this.unlockBalance(transaction.value, transaction.debitedAccountId);
     await this.accountService.updateAccountBalance(
       { balance: new Decimal(-transaction.value) },
@@ -230,7 +233,9 @@ export class UserService {
     return reversalTransaction;
   }
 
-  private async updateBalancesForReversal(transaction: any): Promise<void> {
+  private async updateBalancesForReversal(
+    transaction: TransactionDto,
+  ): Promise<void> {
     await this.accountService.updateAccountBalance(
       { balance: transaction.value },
       transaction.debitedAccountId,
@@ -265,7 +270,7 @@ export class UserService {
   }
 
   private async validateTransactionForCancellation(
-    transaction: any,
+    transaction: TransactionDto,
     userId: string,
   ): Promise<void> {
     if (!transaction) {
