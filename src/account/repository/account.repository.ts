@@ -30,7 +30,7 @@ export class AccountRepository {
   ): Promise<AccountResponseDto> {
     return await this.prisma.account.update({
       data: {
-        balance: { increment: balance},
+        balance: { increment: balance },
       },
       where: { id },
     });

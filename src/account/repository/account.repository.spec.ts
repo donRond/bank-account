@@ -36,14 +36,21 @@ describe('AccountRepository', () => {
   describe('create', () => {
     it('should create an account and return the account DTO', async () => {
       const accountData: ICreateAccountDto = { balance: new Decimal(100) }; // Ajuste conforme seu DTO
-      const expectedAccount: AccountDto = { id: '1', ...accountData, lockedBalance: new Decimal(0), createdAt: new Date() };
+      const expectedAccount: AccountDto = {
+        id: '1',
+        ...accountData,
+        lockedBalance: new Decimal(0),
+        createdAt: new Date(),
+      };
 
       mockPrismaService.account.create.mockResolvedValue(expectedAccount);
 
       const result = await accountRepository.create(accountData);
 
       expect(result).toEqual(expectedAccount);
-      expect(mockPrismaService.account.create).toHaveBeenCalledWith({ data: accountData });
+      expect(mockPrismaService.account.create).toHaveBeenCalledWith({
+        data: accountData,
+      });
       expect(mockPrismaService.account.create).toHaveBeenCalledTimes(1);
     });
   });
@@ -61,7 +68,10 @@ describe('AccountRepository', () => {
 
       mockPrismaService.account.update.mockResolvedValue(expectedResponse);
 
-      const result = await accountRepository.updateLockedBalance(lockedBalance, id);
+      const result = await accountRepository.updateLockedBalance(
+        lockedBalance,
+        id,
+      );
 
       expect(result).toEqual(expectedResponse);
       expect(mockPrismaService.account.update).toHaveBeenCalledWith({
