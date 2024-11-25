@@ -15,7 +15,9 @@ export class AccountService {
 
     try {
       const account = await this.accountRepository.create(data);
-      this.logger.log(`Account created successfully: ${JSON.stringify(account)}`);
+      this.logger.log(
+        `Account created successfully: ${JSON.stringify(account)}`,
+      );
       return account;
     } catch (error) {
       this.logger.error(`Failed to create account: ${error.message}`);
@@ -27,14 +29,23 @@ export class AccountService {
     { lockedBalance }: UpdateAccountDto,
     id: string,
   ): Promise<AccountResponseDto> {
-    this.logger.log(`Updating locked balance for account ID: ${id} with value: ${lockedBalance}`);
+    this.logger.log(
+      `Updating locked balance for account ID: ${id} with value: ${lockedBalance}`,
+    );
 
     try {
-      const updatedAccount = await this.accountRepository.updateLockedBalance(lockedBalance, id);
-      this.logger.log(`Locked balance updated successfully: ${JSON.stringify(updatedAccount)}`);
+      const updatedAccount = await this.accountRepository.updateLockedBalance(
+        lockedBalance,
+        id,
+      );
+      this.logger.log(
+        `Locked balance updated successfully: ${JSON.stringify(updatedAccount)}`,
+      );
       return updatedAccount;
     } catch (error) {
-      this.logger.error(`Failed to update locked balance for account ID ${id}: ${error.message}`);
+      this.logger.error(
+        `Failed to update locked balance for account ID ${id}: ${error.message}`,
+      );
       throw error; // Rethrow the error for further handling
     }
   }
@@ -43,14 +54,23 @@ export class AccountService {
     { balance }: UpdateAccountDto,
     id: string,
   ): Promise<AccountResponseDto> {
-    this.logger.log(`Updating account balance for account ID: ${id} with value: ${balance}`);
+    this.logger.log(
+      `Updating account balance for account ID: ${id} with value: ${balance}`,
+    );
 
     try {
-      const updatedAccount = await this.accountRepository.updateAccountBalance(balance, id);
-      this.logger.log(`Account balance updated successfully: ${JSON.stringify(updatedAccount)}`);
+      const updatedAccount = await this.accountRepository.updateAccountBalance(
+        balance,
+        id,
+      );
+      this.logger.log(
+        `Account balance updated successfully: ${JSON.stringify(updatedAccount)}`,
+      );
       return updatedAccount;
     } catch (error) {
-      this.logger.error(`Failed to update account balance for account ID ${id}: ${error.message}`);
+      this.logger.error(
+        `Failed to update account balance for account ID ${id}: ${error.message}`,
+      );
       throw error; // Rethrow the error for further handling
     }
   }
