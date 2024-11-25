@@ -16,15 +16,18 @@ export class AuthService {
   async login(login: ILoginDto): Promise<AccessToken> {
     // Chama o método findByEmail do UserService
     const user = await this.userRepository.findByEmail(login.email);
-    
+
     // Verifica se o usuário foi encontrado
     if (!user) {
       throw new BadRequestException('Not found User with this email');
     }
 
     // Compara a senha informada com a senha armazenada
-    const passwordEncrypted = await bcrypt.compare(login.password, user.password);
-    
+    const passwordEncrypted = await bcrypt.compare(
+      login.password,
+      user.password,
+    );
+
     // Verifica se a senha está correta
     if (!passwordEncrypted) {
       throw new BadRequestException('Password is invalid');
