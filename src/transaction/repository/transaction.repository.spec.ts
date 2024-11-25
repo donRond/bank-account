@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionRepository } from './transaction.repository'; // ajuste o caminho conforme necessário
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateTransactionDto, TransactionResponseDto } from '../dto/transaction.dto';
+import {
+  CreateTransactionDto,
+  TransactionResponseDto,
+} from '../dto/transaction.dto';
 import { TransactionStatus } from '../enum/TransactionStatus.enum';
 import { Decimal } from '@prisma/client/runtime/library';
 
@@ -26,7 +29,9 @@ describe('TransactionRepository', () => {
       ],
     }).compile();
 
-    transactionRepository = module.get<TransactionRepository>(TransactionRepository);
+    transactionRepository = module.get<TransactionRepository>(
+      TransactionRepository,
+    );
     prismaService = module.get<PrismaService>(PrismaService);
   });
 
@@ -51,9 +56,12 @@ describe('TransactionRepository', () => {
 
       mockPrismaService.transaction.create.mockResolvedValue(expectedResponse);
 
-      const result = await transactionRepository.initiationTransaction(createTransactionDto);
+      const result =
+        await transactionRepository.initiationTransaction(createTransactionDto);
       expect(result).toEqual(expectedResponse);
-      expect(mockPrismaService.transaction.create).toHaveBeenCalledWith({ data: createTransactionDto });
+      expect(mockPrismaService.transaction.create).toHaveBeenCalledWith({
+        data: createTransactionDto,
+      });
     });
   });
 
@@ -95,11 +103,15 @@ describe('TransactionRepository', () => {
         createdAt: new Date(),
       };
 
-      mockPrismaService.transaction.findFirst.mockResolvedValue(expectedResponse);
+      mockPrismaService.transaction.findFirst.mockResolvedValue(
+        expectedResponse,
+      );
 
       const result = await transactionRepository.findTransaction(id);
       expect(result).toEqual(expectedResponse);
-      expect(mockPrismaService.transaction.findFirst).toHaveBeenCalledWith({ where: { id } });
+      expect(mockPrismaService.transaction.findFirst).toHaveBeenCalledWith({
+        where: { id },
+      });
     });
   });
 
@@ -116,11 +128,15 @@ describe('TransactionRepository', () => {
         createdAt: new Date(),
       };
 
-      mockPrismaService.transaction.findUnique.mockResolvedValue(expectedResponse);
+      mockPrismaService.transaction.findUnique.mockResolvedValue(
+        expectedResponse,
+      );
 
       const result = await transactionRepository.findTransactionReversal(id);
       expect(result).toEqual(expectedResponse);
-      expect(mockPrismaService.transaction.findUnique).toHaveBeenCalledWith({ where: { "reversedTransactionId": "1" } });
+      expect(mockPrismaService.transaction.findUnique).toHaveBeenCalledWith({
+        where: { reversedTransactionId: '1' },
+      });
     });
   });
 });
