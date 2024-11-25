@@ -34,7 +34,9 @@ export class UserController {
     @Body() payload: IinitiationTransactionViewDto,
   ): Promise<TransactionResponseDto> {
     const { id } = req['user'];
-    this.logger.log(`Initiating transfer from user ${id} to ${payload.email} for amount ${payload.amount}`);
+    this.logger.log(
+      `Initiating transfer from user ${id} to ${payload.email} for amount ${payload.amount}`,
+    );
 
     const response = await this.userService.initiateTransfer({
       sender: id,
@@ -53,7 +55,9 @@ export class UserController {
     @Body() payload: ConfirmTransactionDto,
   ): Promise<TransactionResponseDto> {
     const { id } = req['user'];
-    this.logger.log(`Confirming transfer for user ${id} with payload: ${JSON.stringify(payload)}`);
+    this.logger.log(
+      `Confirming transfer for user ${id} with payload: ${JSON.stringify(payload)}`,
+    );
     const response = await this.userService.confirmTransfer(payload, id);
     this.logger.log(`Transfer confirmed: ${JSON.stringify(response)}`);
     return response;
@@ -66,10 +70,12 @@ export class UserController {
   async reverselTransfer(
     @Body() payload: ReversalTransactionDto,
   ): Promise<TransactionResponseDto> {
-    this.logger.log(`Reversing transfer with payload: ${JSON.stringify(payload)}`);
-     const response = await this.userService.reversalTransfer(payload);
-     this.logger.log(`Transfer reversed: ${JSON.stringify(response)}`);
-     return response;
+    this.logger.log(
+      `Reversing transfer with payload: ${JSON.stringify(payload)}`,
+    );
+    const response = await this.userService.reversalTransfer(payload);
+    this.logger.log(`Transfer reversed: ${JSON.stringify(response)}`);
+    return response;
   }
 
   @HttpCode(HttpStatus.OK)
@@ -80,10 +86,12 @@ export class UserController {
     @Body() payload: ReversalTransactionDto,
   ): Promise<TransactionResponseDto> {
     const { id } = req['user'];
-    this.logger.log(`Cancelling transfer for user ${id} with payload: ${JSON.stringify(payload)}`);
-     const response=await this.userService.cancelTransfer(payload, id);
-     this.logger.log(`Transfer cancelled: ${JSON.stringify(response)}`);
-     return response;
+    this.logger.log(
+      `Cancelling transfer for user ${id} with payload: ${JSON.stringify(payload)}`,
+    );
+    const response = await this.userService.cancelTransfer(payload, id);
+    this.logger.log(`Transfer cancelled: ${JSON.stringify(response)}`);
+    return response;
   }
 
   @HttpCode(HttpStatus.OK)
