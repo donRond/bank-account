@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionService } from './transaction.service'; // ajuste o caminho conforme necessário
 import { TransactionRepository } from '../repository/transaction.repository';
-import { CreateTransactionDto, TransactionResponseDto, ConfirmTransactionDto } from '../dto/transaction.dto';
+import {
+  CreateTransactionDto,
+  TransactionResponseDto,
+  ConfirmTransactionDto,
+} from '../dto/transaction.dto';
 import { TransactionStatus } from '../enum/TransactionStatus.enum';
 import { Decimal } from '@prisma/client/runtime/library';
 
@@ -25,7 +29,9 @@ describe('TransactionService', () => {
     }).compile();
 
     transactionService = module.get<TransactionService>(TransactionService);
-    transactionRepository = module.get<TransactionRepository>(TransactionRepository);
+    transactionRepository = module.get<TransactionRepository>(
+      TransactionRepository,
+    );
   });
 
   describe('initiateTransfer', () => {
@@ -47,11 +53,16 @@ describe('TransactionService', () => {
         createdAt: new Date(),
       };
 
-      mockTransactionRepository.initiationTransaction.mockResolvedValue(expectedResponse);
+      mockTransactionRepository.initiationTransaction.mockResolvedValue(
+        expectedResponse,
+      );
 
-      const result = await transactionService.initiateTransfer(createTransactionDto);
+      const result =
+        await transactionService.initiateTransfer(createTransactionDto);
       expect(result).toEqual(expectedResponse);
-      expect(mockTransactionRepository.initiationTransaction).toHaveBeenCalledWith(createTransactionDto);
+      expect(
+        mockTransactionRepository.initiationTransaction,
+      ).toHaveBeenCalledWith(createTransactionDto);
     });
   });
 
@@ -69,11 +80,16 @@ describe('TransactionService', () => {
         createdAt: new Date(),
       };
 
-      mockTransactionRepository.updateTransfer.mockResolvedValue(expectedResponse);
+      mockTransactionRepository.updateTransfer.mockResolvedValue(
+        expectedResponse,
+      );
 
       const result = await transactionService.updateTransfer(status, id);
       expect(result).toEqual(expectedResponse);
-      expect(mockTransactionRepository.updateTransfer).toHaveBeenCalledWith(status, id);
+      expect(mockTransactionRepository.updateTransfer).toHaveBeenCalledWith(
+        status,
+        id,
+      );
     });
   });
 
@@ -90,11 +106,15 @@ describe('TransactionService', () => {
         createdAt: new Date(),
       };
 
-      mockTransactionRepository.findTransaction.mockResolvedValue(expectedResponse);
+      mockTransactionRepository.findTransaction.mockResolvedValue(
+        expectedResponse,
+      );
 
       const result = await transactionService.findTransaction({ id });
       expect(result).toEqual(expectedResponse);
-      expect(mockTransactionRepository.findTransaction).toHaveBeenCalledWith(id);
+      expect(mockTransactionRepository.findTransaction).toHaveBeenCalledWith(
+        id,
+      );
     });
   });
 
@@ -111,11 +131,15 @@ describe('TransactionService', () => {
         createdAt: new Date(),
       };
 
-      mockTransactionRepository.findTransactionReversal.mockResolvedValue(expectedResponse);
+      mockTransactionRepository.findTransactionReversal.mockResolvedValue(
+        expectedResponse,
+      );
 
       const result = await transactionService.findTransactionReversal({ id });
       expect(result).toEqual(expectedResponse);
-      expect(mockTransactionRepository.findTransactionReversal).toHaveBeenCalledWith(id);
+      expect(
+        mockTransactionRepository.findTransactionReversal,
+      ).toHaveBeenCalledWith(id);
     });
   });
 });
