@@ -278,6 +278,7 @@ export class UserService {
     }
 
     if (transaction.status !== TransactionStatus.PENDING) {
+      this.logger.warn(`Transaction can't be canceled ${transaction.id}`);
       throw new BadRequestException('Transaction can’t be canceled');
     }
     const { id } = await this.showBalance(userId);
